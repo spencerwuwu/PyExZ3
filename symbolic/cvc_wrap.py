@@ -13,8 +13,8 @@ class CVCWrapper(object):
                'strings-exp': 'true',
                # Enable modular arithmetic with constant modulus
                'rewrite-divk': 'true',
-               # Per Query timeout of 5 seconds
-               'tlimit-per': 10000,
+               # Per Query timeout of 30 seconds
+               'tlimit-per': 30000,
                'output-language': 'smt2',
                'input-language': 'smt2'}
     logic = 'ALL_SUPPORTED'
