@@ -7,8 +7,17 @@ apt-get -y upgrade
 
 # Dependencies
 apt-get -y install git
-apt-get -y install python3
 apt-get -y install graphviz graphviz-dev
+
+## Python 3.4
+cd /tmp
+curl -OL https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tgz
+tar xf Python-3.4.3.tgz
+cd Python-3.4.3
+./configure
+make
+make test
+make install
 
 ## Z3
 apt-get -y install g++
