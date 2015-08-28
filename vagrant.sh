@@ -6,6 +6,7 @@ apt-get update
 apt-get -y upgrade
 
 # Dependencies
+apt-get -y install git
 apt-get -y install python3
 apt-get -y install graphviz graphviz-dev
 
