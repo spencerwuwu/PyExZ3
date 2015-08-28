@@ -33,6 +33,7 @@ apt-get install -y libboost-all-dev
 apt-get install -y openjdk-7-jre openjdk-7-jdk
 apt-get install -y swig
 apt-get install -y python3-dev
+apt-get install -y autoconf
 cd /tmp
 git clone https://github.com/CVC4/CVC4.git
 cd CVC4
