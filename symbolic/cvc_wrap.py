@@ -1,4 +1,5 @@
 import logging
+import time
 
 from CVC4 import ExprManager, SmtEngine, SExpr
 
@@ -19,11 +20,13 @@ class CVCWrapper(object):
                'input-language': 'smt2'}
     logic = 'ALL_SUPPORTED'
 
-    def __init__(self):
+    def __init__(self, solvetimeout=30):
         self.asserts = None
         self.query = None
         self.em = None
         self.solver = None
+        self.solvertime = 0
+        self.options['tlimit-per'] = solvetimeout * 1000
 
     def findCounterexample(self, asserts, query):
         """Tries to find a counterexample to the query while
@@ -47,8 +50,11 @@ class CVCWrapper(object):
         exprbuilder = ExprBuilder(self.asserts, self.query, self.solver)
         self.solver.assertFormula(exprbuilder.query.cvc_expr)
         try:
+            startime = time.clock()
             result = self.solver.checkSat()
-            log.debug("Solver returned %s" % result.toString())
+            endtime = time.clock()
+            log.debug("Solver time: {0:.2f} seconds".format(endtime - startime))
+            self.solvertime += endtime - startime
             if not result.isSat():
                 ret = None
             elif result.isUnknown():

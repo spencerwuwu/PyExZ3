@@ -2,6 +2,7 @@
 
 from collections import deque
 import logging
+import time
 
 from .z3_wrap import Z3Wrapper
 from .path_to_constraint import PathToConstraint
@@ -11,7 +12,7 @@ log = logging.getLogger("se.conc")
 
 
 class ExplorationEngine:
-    def __init__(self, funcinv, solver="z3"):
+    def __init__(self, funcinv, solver="z3", solvetimeout=30):
         self.invocation = funcinv
         # the input to the function
         self.symbolic_inputs = {}  # string -> SymbolicType
@@ -30,7 +31,7 @@ class ExplorationEngine:
             self.solver = Z3Wrapper()
         elif solver == "cvc":
             from .cvc_wrap import CVCWrapper
-            self.solver = CVCWrapper()
+            self.solver = CVCWrapper(solvetimeout=solvetimeout)
         else:
             raise Exception("Unknown solver %s" % solver)
 
@@ -43,9 +44,9 @@ class ExplorationEngine:
         # make sure to remember the input that led to this constraint
         constraint.inputs = self._getInputs()
 
-    def explore(self, max_iterations=0):
+    def explore(self, max_iterations=0, timeout=None):
         self._oneExecution()
-
+        starttime = time.clock()
         iterations = 1
         if max_iterations != 0 and iterations >= max_iterations:
             log.debug("Maximum number of iterations reached, terminating")
@@ -74,6 +75,10 @@ class ExplorationEngine:
 
             if max_iterations != 0 and iterations >= max_iterations:
                 log.info("Maximum number of iterations reached, terminating")
+                break
+
+            if timeout is not None and (time.clock() - starttime) > timeout:
+                log.info("Timeout reached, terminating")
                 break
 
         return self.generated_inputs, self.execution_return_values, self.path
