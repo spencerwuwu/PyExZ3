@@ -7,17 +7,7 @@ apt-get -y upgrade
 
 # Dependencies
 apt-get -y install git
-apt-get -y install graphviz graphviz-dev
-
-## Python 3.4
-cd /tmp
-curl -OL https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tgz
-tar xf Python-3.4.3.tgz
-cd Python-3.4.3
-./configure
-make
-make test
-make install
+apt-get -y install python3 graphviz graphviz-dev
 
 ## Z3
 apt-get -y install g++
@@ -31,7 +21,7 @@ cd build
 make
 make install
 cp libz3.so /usr/lib/python3/dist-packages
-python3 /usr/share/doc/python3.2/examples/scripts/reindent.py z3*.py
+python3 /usr/share/doc/python3.4/examples/scripts/reindent.py z3*.py
 cp z3*.py /usr/lib/python3/dist-packages
 cp z3*.pyc /usr/lib/python3/dist-packages
 cd
@@ -48,7 +38,7 @@ git clone https://github.com/CVC4/CVC4.git
 cd CVC4
 ./autogen.sh
 contrib/get-antlr-3.4
-export PYTHON_CONFIG=/usr/bin/python3.2-config
+export PYTHON_CONFIG=/usr/bin/python3-config
 ./configure --enable-optimized --with-antlr-dir=/tmp/CVC4/antlr-3.4 ANTLR=/tmp/CVC4/antlr-3.4/bin/antlr3 --enable-language-bindings=python
 echo "python_cpp_SWIGFLAGS = -py3" >> src/bindings/Makefile.am
 autoreconf
