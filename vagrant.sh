@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Configuration
 INSTALLDIR=/home/vagrant/pyex
 
