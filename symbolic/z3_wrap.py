@@ -10,11 +10,12 @@ log = logging.getLogger("se.z3")
 
 
 class Z3Wrapper(object):
-    def __init__(self):
+    def __init__(self, solvetimeout=None):
         self.N = 32
         self.asserts = None
         self.query = None
         self.solver = None
+        self.solvetimeout = solvetimeout
         self.use_lia = True
         self.z3_expr = None
 

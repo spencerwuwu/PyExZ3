@@ -28,7 +28,7 @@ class ExplorationEngine:
         symbolic_type.SymbolicObject.SI = self.path
 
         if solver == "z3":
-            self.solver = Z3Wrapper()
+            self.solver = Z3Wrapper(solvetimeout=solvetimeout)
         elif solver == "cvc":
             from .cvc_wrap import CVCWrapper
             self.solver = CVCWrapper(solvetimeout=solvetimeout)
