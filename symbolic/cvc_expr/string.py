@@ -53,12 +53,7 @@ class CVCString(CVCExpression):
                                       >= CVCInteger.constant(0, self.solver))
             self.solver.guards.append(offset
                                       >= CVCInteger.constant(0, self.solver))
-            # Adding these forms of guards globally
-            # can limit the number of solutions generated
-            # but restructuring to avoid reducing the
-            # solution space is a significant undertaking.
             self.solver.guards.append(self.len() > item.start)
-            self.solver.guards.append(self.len() >= item.stop)
             return CVCString(self.em.mkExpr(CVC4.STRING_SUBSTR, self.cvc_expr,
                                             item.start.cvc_expr, offset.cvc_expr),
                              self.solver)
