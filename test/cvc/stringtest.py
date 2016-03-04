@@ -7,9 +7,11 @@ def stringtest(s):
         return 0
     elif (s == '\\'):
         return 2
+    elif (s == '\t'):
+        return 3
     else:
         return 1
 
 
 def expected_result_set():
-    return {0, 1, 2}
+    return {0, 1, 2, 3}

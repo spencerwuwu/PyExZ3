@@ -2,8 +2,8 @@ from symbolic.args import symbolic
 
 
 @symbolic(s="foo")
-def strstrip(s):
-    if "abc" == s.strip():
+def strsplit_delim(s):
+    if ['', ''] == s.split('#', 1):
         return 0
     return 1
 

@@ -14,6 +14,9 @@ class SymbolicInteger(SymbolicObject, int):
     def __new__(cls, name, v, expr=None):
         return int.__new__(cls, v)
 
+    def __getnewargs__(self, *args, **kwargs):
+        return (self.name, self.val)
+
     def __init__(self, name, v, expr=None):
         SymbolicObject.__init__(self, name, expr)
         self.val = v
@@ -25,7 +28,7 @@ class SymbolicInteger(SymbolicObject, int):
         return SymbolicInteger("se", conc, sym)
 
     def __hash__(self):
-        return hash(self.val)
+        return self
 
     def _op_worker(self, args, fun, op):
         return self._do_sexpr(args, fun, op, SymbolicInteger.wrap)

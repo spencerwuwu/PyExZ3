@@ -5,9 +5,11 @@ from symbolic.args import symbolic
 def escape(string):
     if string and '\\' not in string and string.find(':') > 0:
         return 0
-    else:
+    elif '"' in string:
         return 1
+    else:
+        return 2
 
 
 def expected_result_set():
-    return {0, 1}
+    return {0, 1, 2}

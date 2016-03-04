@@ -2,13 +2,12 @@ from symbolic.args import symbolic
 
 
 @symbolic(s="foo")
-def strcontains(s):
-    if "bar" in s:
+def strlower(s):
+    if s.lower() == "hello":
         return 0
-    elif "x" not in s:
-        return 2
-    else:
+    if "X" in s and "x" in s.lower():
         return 1
+    return 2
 
 
 def expected_result_set():

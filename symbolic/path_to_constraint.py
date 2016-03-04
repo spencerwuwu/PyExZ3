@@ -1,6 +1,7 @@
 # Copyright: see copyright.txt
 
 import logging
+from textwrap import wrap
 
 from .predicate import Predicate
 from .constraint import Constraint
@@ -9,9 +10,10 @@ log = logging.getLogger("se.pathconstraint")
 
 
 class PathToConstraint:
-    def __init__(self, add):
+    def __init__(self, add, name):
         self.constraints = {}
         self.add = add
+        self.name = name
         self.root_constraint = Constraint(None, None)
         self.current_constraint = self.root_constraint
         self.expected_path = None
@@ -42,7 +44,6 @@ class PathToConstraint:
             c = self.current_constraint.addChild(p)
 
             # we add the new constraint to the queue of the engine for later processing
-            log.debug("New constraint: %s" % c)
             self.add(c)
 
         # check for path mismatch
@@ -63,23 +64,48 @@ class PathToConstraint:
             # We've already processed both
             cneg.processed = True
             c.processed = True
-            log.debug("Processed constraint: %s" % c)
 
         self.current_constraint = c
+
+    def find_constraint(self, id):
+        return self._find_constraint(self.root_constraint, id)
+
+    def _find_constraint(self, constraint, id):
+        if constraint.id == id:
+            return constraint
+        else:
+            for child in constraint.children:
+                found = self._find_constraint(child, id)
+                if found is not None:
+                    return found
+        return None
 
     def toDot(self):
         # print the thing into DOT format
         header = "digraph {\n"
         footer = "\n}\n"
-        return header + self._toDot(self.root_constraint) + footer
 
-    def _toDot(self, c):
-        if c.parent is None:
-            label = "root"
-        else:
-            label = c.predicate.symtype.toString()
-            if not c.predicate.result:
-                label = "Not(" + label + ")"
-        node = "C" + str(c.id) + " [ label=\"" + label + "\" ];\n"
-        edges = ["C" + str(c.id) + " -> " + "C" + str(child.id) + ";\n" for child in c.children]
-        return node + "".join(edges) + "".join([self._toDot(child) for child in c.children])
+        constraints = [self.root_constraint]
+        dotbody = ""
+        while len(constraints) > 0:
+            c = constraints.pop()
+            if c.parent is None:
+                label = self.name
+            else:
+                label = c.predicate.symtype.toString()
+                if not c.predicate.result:
+                    label = "Not(" + label + ")"
+            node = "C" + str(c.id) + " [ label=\"" + "\\n".join(wrap((label + ":" +
+                         str(c.branch_id)).replace('\\', '\\\\').replace('"', '\\"') + "\"];\n"))
+            edges = ["C" + str(c.id) + " -> " + "C" + str(child.id) +
+                     " [ label=\"" + str(child.inputs).replace('\\','\\\\').replace('"', '\\"') +
+                     " ({0:.2f})".format(child.solving_time) + "\"];\n" for child in c.children]
+            dotbody += node + "".join(edges)
+            constraints += [child for child in c.children]
+        return header + dotbody + footer
+
+    def __getstate__(self):
+        return {k: v for k,v in self.__dict__.items() if k != "add"}
+
+    def __getnewargs__(self):
+        return ("","","")

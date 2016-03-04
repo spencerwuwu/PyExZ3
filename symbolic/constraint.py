@@ -1,23 +1,39 @@
 # Copyright: see copyright.txt
 
 import logging
+import inspect
+
+import coverage
 
 log = logging.getLogger("se.constraint")
 
 
-class Constraint:
+class Constraint(object):
     cnt = 0
     """A constraint is a list of predicates leading to some specific
        position in the code."""
 
     def __init__(self, parent, last_predicate):
         self.inputs = None
+        self.lines_covered = {} # {filename: frozenset(line_number)}
+        self.branches_covered = {} # {filename: frozenset((origin_line_number, destination_line_number))}
+        self.solving_time = 0
         self.predicate = last_predicate
         self.processed = False
         self.parent = parent
         self.children = []
         self.id = self.__class__.cnt
         self.__class__.cnt += 1
+        branch = self.predicate.result if self.predicate is not None else ""
+        self.branch_id = self._branch_id(inspect.stack(), branch)
+
+    def _branch_id(self, stack, branch):
+        instrumentation_keywords = {"pyexz3.py", "symbolic", "pydev", "coverage"}
+        for frame, filename, linenum, funcname, context, contextline in stack:
+            if any(instrumentation_keyword in filename for instrumentation_keyword in instrumentation_keywords):
+                continue
+            return "{}:{}:{}".format(filename, linenum, branch)
+        return None
 
     def __eq__(self, other):
         """Two Constraints are equal iff they have the same chain of predicates"""
@@ -27,6 +43,11 @@ class Constraint:
             return self.parent is other.parent
         else:
             return False
+
+    def set_coverage(self, cov: coverage.CoverageData):
+        for file in cov.measured_files():
+            self.lines_covered[file] = frozenset(cov.lines(file))
+            self.branches_covered[file] = frozenset(cov.arcs(file))
 
     def getAssertsAndQuery(self):
         self.processed = True
@@ -65,3 +86,6 @@ class Constraint:
         c = Constraint(self, predicate)
         self.children.append(c)
         return c
+
+    def __lt__(self, other):
+        return self.getLength() > other.getLength()

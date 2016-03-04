@@ -3,7 +3,7 @@ from symbolic.args import symbolic
 
 @symbolic(s="foo")
 def strsplit(s):
-    if ['a', 'b'] == s.split("&"):
+    if ['a', 'b'] == s.split(None, 1):
         return 0
     return 1
 

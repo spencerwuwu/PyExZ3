@@ -1,6 +1,6 @@
 from .symbolic_type import SymbolicObject
 from symbolic.symbolic_types.symbolic_int import SymbolicInteger
-from string import whitespace
+from string import ascii_lowercase, ascii_uppercase, whitespace
 
 
 class SymbolicStr(SymbolicObject, str):
@@ -11,11 +11,20 @@ class SymbolicStr(SymbolicObject, str):
         SymbolicObject.__init__(self, name, expr)
         self.val = v
 
+    def __getnewargs__(self, *args, **kwargs):
+        return (self.name, self.val)
+
     def getConcrValue(self):
         return self.val
 
     def wrap(conc, sym):
         return SymbolicStr("se", conc, sym)
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return SymbolicObject.__bool__(self != self) # a String should never equal a list
+        else:
+            return SymbolicObject.__eq__(self, other)
 
     def __hash__(self):
         return hash(self.val)
@@ -55,17 +64,20 @@ class SymbolicStr(SymbolicObject, str):
                               "str.startswith", SymbolicInteger.wrap)
 
     def split(self, sep=None, maxsplit=None):
-        if sep is None:
+        if sep is not None:
+            if len(self) == 0:
+                return [""]
+        else:
             sep = " "
-        if len(self) == 0:
-            return []
-        elif maxsplit == 0 or sep not in self:
+            if len(self) == 0:
+                return []
+        if maxsplit == 0 or sep not in self:
             return [self]
         else:
             sep_idx = self.find(sep)
             maxsplit = None if maxsplit is None else maxsplit - 1
             return [self[0:sep_idx]] + \
-                   self[sep_idx + 1:].split(sep, maxsplit)
+               self[sep_idx + 1:].split(sep, maxsplit)
 
     def count(self, sub):
         """String count is not a native function of the SMT solver. Instead, we implement count as a recursive series of
@@ -114,6 +126,11 @@ class SymbolicStr(SymbolicObject, str):
                 return self[:self.__len__() - 1].strip(chars)
         return self
 
+    def lower(self):
+        lowered = self
+        for (lowercase, uppercase) in zip(ascii_lowercase, ascii_uppercase):
+            lowered = lowered.replace(uppercase, lowercase)
+        return lowered
 
 # Currently only a subset of string operations are supported.
 ops = [("add", "+")]

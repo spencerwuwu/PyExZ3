@@ -227,6 +227,11 @@ stdout
 #tmp#
 *.dot
 tmp.txt
+queries
+*.p
+
+# pyenv
+.python-version
 
 #############
 ## Vagrant
@@ -237,3 +242,9 @@ tmp.txt
 ## PyCharm
 #############
 .idea
+
+####################
+## VS Project Files
+####################
+*.pyproj
+*.sln

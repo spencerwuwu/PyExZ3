@@ -1,5 +1,6 @@
 # Copyright: see copyright.txt
 
+import time
 import logging
 
 from z3 import *
@@ -14,52 +15,41 @@ class Z3Wrapper(object):
         self.N = 32
         self.asserts = None
         self.query = None
-        self.solver = None
         self.use_lia = True
         self.z3_expr = None
 
-    def findCounterexample(self, asserts, query):
+    def findCounterexample(self, asserts, query, timeout=None):
         """Tries to find a counterexample to the query while
            asserts remains valid."""
+        # The current wrapper for Z3 ignores solve timeouts
+        starttime = time.process_time()
         self.solver = Solver()
+        self.solver.set(timeout=int(timeout * 1000))
         self.query = query
-        self.asserts = self._coneOfInfluence(asserts, query)
-        res = self._findModel()
-        log.debug("Query -- %s" % self.query)
-        log.debug("Asserts -- %s" % asserts)
-        log.debug("Cone -- %s" % self.asserts)
+        self.asserts = asserts
+        res, model = self._findModel()
+        endtime = time.process_time()
+        solvertime = endtime - starttime
+        log.debug("Timeout -- %s" % timeout)
         log.debug("Result -- %s" % res)
-        return res
+        log.debug("Model -- %s" % model)
+        log.debug("Solver time: {0:.2f} seconds".format(solvertime))
+        return res, model, solvertime
 
     # private
 
-    # this is very inefficient
-    def _coneOfInfluence(self, asserts, query):
-        cone = []
-        cone_vars = set(query.getVars())
-        ws = [a for a in asserts if len(set(a.getVars()) & cone_vars) > 0]
-        remaining = [a for a in asserts if a not in ws]
-        while len(ws) > 0:
-            a = ws.pop()
-            a_vars = set(a.getVars())
-            cone_vars = cone_vars.union(a_vars)
-            cone.append(a)
-            new_ws = [a for a in remaining if len(set(a.getVars()) & cone_vars) > 0]
-            remaining = [a for a in remaining if a not in new_ws]
-            ws = ws + new_ws
-        return cone
-
     def _findModel(self):
         # Try QF_LIA first (as it may fairly easily recognize unsat instances)
+        model = None
         if self.use_lia:
             self.solver.push()
             self.z3_expr = Z3Integer()
-            self.z3_expr.toZ3(self.solver, self.asserts, self.query)
+            self.z3_expr.toZ3(self.solver,self.asserts,self.query)
             res = self.solver.check()
-            # print(self.solver.assertions)
+            #print(self.solver.assertions)
             self.solver.pop()
             if res == unsat:
-                return None
+                return "UNSAT", model
 
         # now, go for SAT with bounds
         self.N = 32
@@ -75,17 +65,21 @@ class Z3Wrapper(object):
                 print("expanded bit width to " + str(self.N))
         # print("Assertions")
         # print(self.solver.assertions())
-        if ret == unsat:
-            res = None
-        elif ret == unknown:
-            res = None
-        elif not mismatch:
-            res = self._getModel()
-        else:
-            res = None
+        try:
+            if ret == unsat:
+                res = "UNSAT"
+            elif ret == unknown:
+                res = "UNKNOWN"
+            elif not mismatch:
+                res = "SAT"
+                model = self._getModel()
+            else:
+                res = "UNKNOWN"
+        except Z3Exception:
+            res = "UNKNOWN"
         if self.N <= 64:
             self.solver.pop()
-        return res
+        return res, model
 
     def _setAssertsQuery(self):
         self.z3_expr = Z3BitVector(self.N)

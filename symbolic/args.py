@@ -12,3 +12,19 @@ def concrete(**arg_types):
         return f
 
     return decorator
+
+
+def policy(p):
+    def decorator(f):
+        f.policy = p
+        return f
+
+    return decorator
+
+
+def precondition(p):
+    def decorator(f):
+        f.precondition = p
+        return f
+
+    return decorator
