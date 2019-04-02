@@ -9,6 +9,9 @@ from CVC4 import ExprManager, SmtEngine, SExpr
 
 from symbolic.cvc_expr.exprbuilder import ExprBuilder
 
+from symbolic.cvc_expr.integer import CVCInteger
+from symbolic.cvc_expr.string import CVCString
+
 log = logging.getLogger("se.cvc")
 
 
@@ -55,6 +58,15 @@ class CVCWrapper(object):
     def _findModel(self):
         self.solver.push()
         exprbuilder = ExprBuilder(self.asserts, self.query, self.solver)
+        print("PRINT: START")
+        for (name, cvc_var) in exprbuilder.cvc_vars.items():
+            if isinstance(cvc_var, CVCString):
+                print("PRINT: (declare-fun " + name + " () String)")
+            elif isinstance(cvc_var, CVCInteger):
+                print("PRINT: (declare-fun " + name + " () Int)")
+        print("PRINT: (assert " + exprbuilder.query.cvc_expr.toString() + " )")
+        print("PRINT: (check-sat)")
+        print("PRINT: END")
         self.solver.assertFormula(exprbuilder.query.cvc_expr)
         if self.query_store is not None:
             self.smtlib = self._serialize(exprbuilder.query, exprbuilder.cvc_vars)
