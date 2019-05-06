@@ -15,7 +15,7 @@ import coverage
 import symbolic.scheduling_policies
 from .path_to_constraint import PathToConstraint
 from .symbolic_types import symbolic_type, SymbolicType
-from .z3_wrap import Z3Wrapper
+#from .z3_wrap import Z3Wrapper
 
 log = logging.getLogger("se.conc")
 
