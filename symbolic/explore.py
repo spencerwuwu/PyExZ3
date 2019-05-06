@@ -261,6 +261,7 @@ class ExplorationEngine:
         return sum(1 if solver_worker is not None else 0 for solver_worker in self.worker_pool.values())
 
     def _launch_worker(self, selected_id, selected_timeout, selected_constraint, solver):
+        """
         if solver not in {'z3', 'cvc', 'z3str2', 'multi'}:
             raise Exception("Unknown solver %s" % solver)
 
@@ -272,6 +273,7 @@ class ExplorationEngine:
                 self._wait()
             self._launch_worker(selected_id, selected_timeout, selected_constraint, secondary)
             return
+        """
 
         self.outstanding_constraint_attempts[(selected_id, selected_timeout)] = self.outstanding_constraint_attempts.get((selected_id, selected_timeout), 0) + 1
 
@@ -292,6 +294,7 @@ class ExplorationEngine:
 
     @staticmethod
     def _solve(finished_queries, solver_type, selected_id, selected_timeout, asserts, query, query_store):
+        """
         if solver_type == 'z3':
             solver_instance = Z3Wrapper()
         elif solver_type == 'cvc':
@@ -300,6 +303,9 @@ class ExplorationEngine:
         elif solver_type == "z3str2":
             from .z3str2_wrap import Z3Str2Wrapper
             solver_instance = Z3Str2Wrapper(query_store=query_store)
+        """
+        from .cvc_wrap import CVCWrapper
+        solver_instance = CVCWrapper(query_store=query_store, solver_type=solver_type)
         result, model, solving_time = solver_instance.findCounterexample(asserts, query, timeout=selected_timeout)
         finished_queries.put((selected_id, selected_timeout, result, model, solving_time))
 

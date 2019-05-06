@@ -11,6 +11,8 @@ class SymbolicType(object):
     def __init__(self, name, expr=None):
         self.name = name
         self.expr = expr
+        #print("INIT: " + name)
+        #print("expr: " + str(expr))
 
     # to be provided by subclass
 

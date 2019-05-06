@@ -33,9 +33,10 @@ def main():
     setup_group = OptionGroup(parser, "Exploration Setup")
     setup_group.add_option("-s", "--start", dest="entry", action="store", help="Specify entry point", default="")
     setup_group.add_option("--cvc", dest="solver", action="store_const", const="cvc", help="Use the CVC SMT solver instead of Z3")
-    setup_group.add_option("--z3str2", dest="solver", action="store_const", const="z3str2", help="Use the Z3-str2 SMT solver instead of Z3")
-    setup_group.add_option("--z3", dest="solver", action="store_const", const="z3", help="Use the Z3 SMT solver")
-    setup_group.add_option("--multi", dest="solver", action="store_const", const="multi", help="Use as many different solvers as possible simultaneously")
+    # setup_group.add_option("--z3str2", dest="solver", action="store_const", const="z3str2", help="Use the Z3-str2 SMT solver instead of Z3")
+    # setup_group.add_option("--z3", dest="solver", action="store_const", const="z3", help="Use the Z3 SMT solver")
+    # setup_group.add_option("--multi", dest="solver", action="store_const", const="multi", help="Use as many different solvers as possible simultaneously")
+    # setup_group.add_option("--os", dest="solver", help="Use as many different solvers as possible simultaneously")
     parser.add_option_group(setup_group)
 
     # Configuration
@@ -100,7 +101,7 @@ def main():
         parser.error("Missing app to execute")
         sys.exit(1)
 
-    solver = options.solver if options.solver is not None else "z3"
+    solver = options.solver if options.solver is not None else "cvc"
     solvetimeouts = options.solvetimeouts
     query_store = options.query_store
     scheduling_policy = options.scheduling_policy

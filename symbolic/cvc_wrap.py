@@ -25,11 +25,12 @@ class CVCWrapper(object):
                'input-language': 'smt2'}
     logic = 'ALL_SUPPORTED'
 
-    def __init__(self, query_store=None):
+    def __init__(self, query_store=None, solver_type=None):
         self.asserts = None
         self.query = None
         self.em = None
         self.solver = None
+        self.solver_type = solver_type
         self.query_store = query_store
         self.smtlib = None
 
@@ -58,7 +59,7 @@ class CVCWrapper(object):
     def _findModel(self):
         self.solver.push()
         exprbuilder = ExprBuilder(self.asserts, self.query, self.solver)
-        print("PRINT: START")
+        """
         for (name, cvc_var) in exprbuilder.cvc_vars.items():
             if isinstance(cvc_var, CVCString):
                 print("PRINT: (declare-fun " + name + " () String)")
@@ -67,6 +68,7 @@ class CVCWrapper(object):
         print("PRINT: (assert " + exprbuilder.query.cvc_expr.toString() + " )")
         print("PRINT: (check-sat)")
         print("PRINT: END")
+        """
         self.solver.assertFormula(exprbuilder.query.cvc_expr)
         if self.query_store is not None:
             self.smtlib = self._serialize(exprbuilder.query, exprbuilder.cvc_vars)
@@ -101,6 +103,7 @@ class CVCWrapper(object):
         with open(filename, 'w') as f:
             f.write(self.smtlib)
 
+
     @staticmethod
     def _serialize(query, variables):
         smtlib_template = Template("""
@@ -119,6 +122,24 @@ $getvars
 """)
         assignments = {name.replace('-', '_'): value for name, value in CVCWrapper.options.items()}
         assignments['logic'] = CVCWrapper.logic
+        assignments['query'] = query
+        assignments['declarevars'] = "\n".join(
+            "(declare-fun {} () {})".format(name, var.CVC_TYPE) for name, var in variables.items())
+        assignments['getvars'] = "\n".join("(get-value ({}))".format(name) for name in variables)
+        return smtlib_template.substitute(assignments).strip()
+
+    @staticmethod
+    def _serializeGlobal(query, variables):
+        smtlib_template = Template("""
+$declarevars
+
+(assert $query)
+
+(check-sat)
+
+$getvars
+""")
+        assignments = {name.replace('-', '_'): value for name, value in CVCWrapper.options.items()}
         assignments['query'] = query
         assignments['declarevars'] = "\n".join(
             "(declare-fun {} () {})".format(name, var.CVC_TYPE) for name, var in variables.items())

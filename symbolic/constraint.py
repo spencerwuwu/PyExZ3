@@ -19,6 +19,7 @@ class Constraint(object):
         self.branches_covered = {} # {filename: frozenset((origin_line_number, destination_line_number))}
         self.solving_time = 0
         self.predicate = last_predicate
+        #print("Predicate: " + str(last_predicate))
         self.processed = False
         self.parent = parent
         self.children = []
